@@ -53,6 +53,11 @@ def signal_handler(signal, frame):
 	quit()
 
 
+def day_with_suffix(date):
+	suffix = 'th' if 11 <= date.day <= 13 else {1: 'st', 2: 'nd', 3: 'rd'}.get(date.day % 10, 'th')
+	return str(date.day) + suffix
+
+
 signal.signal(signal.SIGINT, signal_handler)
 
 once = False
@@ -100,6 +105,7 @@ while True:
 	matches = []
 	stageMatches = {}
 	teamMatches = {}
+	teams = {}
 	for stage in stages:
 		stageName = stage['name']
 		stageMatches[stageName] = []
@@ -118,6 +124,10 @@ while True:
 				teamMatches[game['home']] = []
 			if game['away'] not in teamMatches:
 				teamMatches[game['away']] = []
+			if game['home'] not in teams:
+				teams[game['home']] = match['competitors'][0]['name']
+			if game['away'] not in teams:
+				teams[game['away']] = match['competitors'][1]['name']
 
 			teamMatches[game['home']].append(game)
 			teamMatches[game['away']].append(game)
@@ -126,6 +136,59 @@ while True:
 
 	for team in teamMatches:
 		log.debug(team + ": " + str(len(teamMatches[team])))
+
+	team = "SFS"
+	SFSString = []
+	SFSString.append("## UPCOMING MATCH: \n\n")
+	SFSString.append("Date | vs. | Final Result\n")
+	SFSString.append(":---------|:----------:|:----------:\n")
+	nextMatch = 0
+	currentTime = datetime.datetime.utcnow().replace(tzinfo=timezone.utc)
+	for i,match in enumerate(teamMatches['SFS']):
+		if match['date'] > currentTime:
+			log.debug("Found future match at "+str(i))
+			nextMatch = i
+			break
+
+	match = teamMatches[team][nextMatch]
+	matchDate = match['date'].astimezone(timezones['PST'])
+	SFSString.append(matchDate.strftime("%b"))
+	SFSString.append(" ")
+	SFSString.append(day_with_suffix(matchDate))
+	SFSString.append("|")
+	if match['home'] == team:
+		SFSString.append(teams[match['away']])
+	else:
+		SFSString.append(teams[match['home']])
+	SFSString.append("|")
+	SFSString.append("N/A")
+	SFSString.append("\n")
+	SFSString.append("[See full schedule here](https://www.reddit.com/r/SFShock_OW/wiki/matches)\n\n")
+
+	stageName = "Stage 1"
+	SFSString.append("## OVERWATCH LEAGUE | ")
+	SFSString.append(stageName)
+	SFSString.append("\n\n")
+	SFSString.append("Date | vs. | Final Result\n")
+	SFSString.append(":---------|:----------:|:----------:\n")
+	for match in stageMatches[stageName]:
+		if match['home'] == team or match['away'] == team:
+			matchDate = match['date'].astimezone(timezones['PST'])
+			SFSString.append(matchDate.strftime("%b"))
+			SFSString.append(" ")
+			SFSString.append(day_with_suffix(matchDate))
+			SFSString.append("|")
+			if match['home'] == team:
+				SFSString.append(teams[match['away']])
+			else:
+				SFSString.append(teams[match['home']])
+			SFSString.append("|")
+			SFSString.append("N/A")
+			SFSString.append("\n")
+
+	log.debug(''.join(SFSString))
+
+
 
 	log.debug("Run complete after: %d", int(time.perf_counter() - startTime))
 	if once:

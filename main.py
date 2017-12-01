@@ -208,7 +208,7 @@ while True:
 
 		SFSString.append("\n\n\n")
 
-		subreddit = "SubTestBot1"
+		subreddit = "SFShock_OW"
 		wikiPage = r.subreddit(subreddit).wiki['config/sidebar']
 
 		start = wikiPage.content_md[0:wikiPage.content_md.find("## UPCOMING MATCH")]
@@ -250,7 +250,7 @@ while True:
 
 			VALString.append("\n")
 
-		subreddit = "SubTestBot1"
+		subreddit = "lagladiators"
 		wikiPage = r.subreddit(subreddit).wiki['config/sidebar']
 
 		start = wikiPage.content_md[0:wikiPage.content_md.find("#**Schedule**")]

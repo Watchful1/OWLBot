@@ -65,7 +65,7 @@ debug = False
 user = None
 teamSwitches = {
 	'SFS': True,
-	'VAL': True
+	'GLA': True
 }
 if len(sys.argv) >= 2:
 	user = sys.argv[1]
@@ -76,8 +76,8 @@ if len(sys.argv) >= 2:
 			debug = True
 		elif arg == 'noSFS':
 			teamSwitches['SFS'] = False
-		elif arg == 'noVAL':
-			teamSwitches['VAL'] = False
+		elif arg == 'noGLA':
+			teamSwitches['GLA'] = False
 else:
 	log.error("No user specified, aborting")
 	sys.exit(0)
@@ -142,8 +142,8 @@ while True:
 			# log.debug("Match: " + game['home'] + " vs " + game['away'] + " at " + game['date'].astimezone(
 			# 	timezones['EST']).strftime("%m/%d %I:%M"))
 
-	# for team in teamMatches:
-	# 	log.debug(team + ": " + str(len(teamMatches[team])))
+	for team in teamMatches:
+		log.debug(team + ": " + str(len(teamMatches[team])))
 
 	currentTeam = "SFS"
 	if teamSwitches[currentTeam]:
@@ -222,33 +222,33 @@ while True:
 		else:
 			wikiPage.edit(start+''.join(SFSString)+end)
 
-	currentTeam = "VAL"
+	currentTeam = "GLA"
 	if teamSwitches[currentTeam]:
-		VALString = []
-		VALString.append("#**Schedule**\n\n")
+		GLAString = []
+		GLAString.append("#**Schedule**\n\n")
 
 		stages = ["Preseason","Stage 1"]
 		for stage in stages:
-			VALString.append("**")
-			VALString.append(stage)
-			VALString.append("**\n\n")
-			VALString.append("Date|Time| |Opponent|Result\n")
-			VALString.append("---|---|---|---|---\n")
+			GLAString.append("**")
+			GLAString.append(stage)
+			GLAString.append("**\n\n")
+			GLAString.append("Date|Time| |Opponent|Result\n")
+			GLAString.append("---|---|---|---|---\n")
 
 			for match in stageMatches[stage]:
 				if match['home'] == currentTeam or match['away'] == currentTeam:
-					VALString.append(match['date'].astimezone(timezones['PST']).strftime("%m/%d|%I:%M"))
-					VALString.append("||")
+					GLAString.append(match['date'].astimezone(timezones['PST']).strftime("%m/%d|%I:%M"))
+					GLAString.append("||")
 					if match['home'] == currentTeam:
-						VALString.append(teams[match['away']])
+						GLAString.append(teams[match['away']])
 					else:
-						VALString.append(teams[match['home']])
-					VALString.append("|")
-					VALString.append("N/A")
+						GLAString.append(teams[match['home']])
+					GLAString.append("|")
+					GLAString.append("N/A")
 
-					VALString.append("\n")
+					GLAString.append("\n")
 
-			VALString.append("\n")
+			GLAString.append("\n")
 
 		subreddit = "lagladiators"
 		wikiPage = r.subreddit(subreddit).wiki['config/sidebar']
@@ -258,10 +258,10 @@ while True:
 		if debug:
 			log.debug("Subreddit: "+subreddit)
 			log.debug("-" * 50)
-			log.debug(start +''.join(VALString))
+			log.debug(start +''.join(GLAString))
 			log.debug("-" * 50)
 		else:
-			wikiPage.edit(start +''.join(VALString))
+			wikiPage.edit(start +''.join(GLAString))
 
 	log.debug("Run complete after: %d", int(time.perf_counter() - startTime))
 	if once:

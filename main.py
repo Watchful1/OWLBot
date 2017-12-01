@@ -63,6 +63,10 @@ signal.signal(signal.SIGINT, signal_handler)
 once = False
 debug = False
 user = None
+teamSwitches = {
+	'SFS': True,
+	'VAL': True
+}
 if len(sys.argv) >= 2:
 	user = sys.argv[1]
 	for arg in sys.argv:
@@ -70,6 +74,10 @@ if len(sys.argv) >= 2:
 			once = True
 		elif arg == 'debug':
 			debug = True
+		elif arg == 'noSFS':
+			teamSwitches['SFS'] = False
+		elif arg == 'noVAL':
+			teamSwitches['VAL'] = False
 else:
 	log.error("No user specified, aborting")
 	sys.exit(0)
@@ -131,64 +139,129 @@ while True:
 
 			teamMatches[game['home']].append(game)
 			teamMatches[game['away']].append(game)
-			log.debug("Match: " + game['home'] + " vs " + game['away'] + " at " + game['date'].astimezone(
-				timezones['EST']).strftime("%m/%d %I:%M"))
+			# log.debug("Match: " + game['home'] + " vs " + game['away'] + " at " + game['date'].astimezone(
+			# 	timezones['EST']).strftime("%m/%d %I:%M"))
 
-	for team in teamMatches:
-		log.debug(team + ": " + str(len(teamMatches[team])))
+	# for team in teamMatches:
+	# 	log.debug(team + ": " + str(len(teamMatches[team])))
 
-	team = "SFS"
-	SFSString = []
-	SFSString.append("## UPCOMING MATCH: \n\n")
-	SFSString.append("Date | vs. | Final Result\n")
-	SFSString.append(":---------|:----------:|:----------:\n")
-	nextMatch = 0
-	currentTime = datetime.datetime.utcnow().replace(tzinfo=timezone.utc)
-	for i,match in enumerate(teamMatches['SFS']):
-		if match['date'] > currentTime:
-			log.debug("Found future match at "+str(i))
-			nextMatch = i
-			break
+	currentTeam = "SFS"
+	if teamSwitches[currentTeam]:
+		SFSString = []
+		SFSString.append("## UPCOMING MATCH: \n\n")
+		SFSString.append("Date | vs.\n")
+		SFSString.append(":---------|:----------:\n")
+		nextMatch = 0
+		currentTime = datetime.datetime.utcnow().replace(tzinfo=timezone.utc)
+		for i,match in enumerate(teamMatches['SFS']):
+			if match['date'] > currentTime:
+				nextMatch = i
+				break
 
-	match = teamMatches[team][nextMatch]
-	matchDate = match['date'].astimezone(timezones['PST'])
-	SFSString.append(matchDate.strftime("%b"))
-	SFSString.append(" ")
-	SFSString.append(day_with_suffix(matchDate))
-	SFSString.append("|")
-	if match['home'] == team:
-		SFSString.append(teams[match['away']])
-	else:
-		SFSString.append(teams[match['home']])
-	SFSString.append("|")
-	SFSString.append("N/A")
-	SFSString.append("\n")
-	SFSString.append("[See full schedule here](https://www.reddit.com/r/SFShock_OW/wiki/matches)\n\n")
+		match = teamMatches[currentTeam][nextMatch]
+		matchDate = match['date'].astimezone(timezones['PST'])
+		SFSString.append(matchDate.strftime("%b"))
+		SFSString.append(" ")
+		SFSString.append(day_with_suffix(matchDate))
+		SFSString.append("|")
+		if match['home'] == currentTeam:
+			SFSString.append(teams[match['away']])
+		else:
+			SFSString.append(teams[match['home']])
+		SFSString.append("\n")
+		SFSString.append("[See full schedule here](https://www.reddit.com/r/SFShock_OW/wiki/matches)\n\n")
 
-	stageName = "Stage 1"
-	SFSString.append("## OVERWATCH LEAGUE | ")
-	SFSString.append(stageName)
-	SFSString.append("\n\n")
-	SFSString.append("Date | vs. | Final Result\n")
-	SFSString.append(":---------|:----------:|:----------:\n")
-	for match in stageMatches[stageName]:
-		if match['home'] == team or match['away'] == team:
-			matchDate = match['date'].astimezone(timezones['PST'])
-			SFSString.append(matchDate.strftime("%b"))
-			SFSString.append(" ")
-			SFSString.append(day_with_suffix(matchDate))
-			SFSString.append("|")
-			if match['home'] == team:
-				SFSString.append(teams[match['away']])
-			else:
-				SFSString.append(teams[match['home']])
-			SFSString.append("|")
-			SFSString.append("N/A")
-			SFSString.append("\n")
+		stageName = "Stage 1"
+		SFSString.append("## OVERWATCH LEAGUE | ")
+		SFSString.append(stageName)
+		SFSString.append("\n\n")
+		SFSString.append("Date | vs. | Final Result\n")
+		SFSString.append(":---------|:----------:|:----------:\n")
+		foundOpponents = [currentTeam]
+		for match in stageMatches[stageName]:
+			if match['home'] == currentTeam or match['away'] == currentTeam:
+				matchDate = match['date'].astimezone(timezones['PST'])
+				SFSString.append(matchDate.strftime("%b"))
+				SFSString.append(" ")
+				SFSString.append(day_with_suffix(matchDate))
+				SFSString.append("|")
+				if match['home'] == currentTeam:
+					SFSString.append(teams[match['away']])
+					foundOpponents.append(match['away'])
+				else:
+					SFSString.append(teams[match['home']])
+					foundOpponents.append(match['home'])
+				SFSString.append("|")
+				SFSString.append("N/A")
+				SFSString.append("\n")
 
-	log.debug(''.join(SFSString))
+		missingOpponents = []
+		for team in teams:
+			if team not in foundOpponents:
+				missingOpponents.append(team)
+
+		for team in missingOpponents:
+			SFSString.append("X|")
+			SFSString.append(teams[team])
+			SFSString.append("|X")
 
 
+		SFSString.append("\n\n\n")
+
+		subreddit = "SubTestBot1"
+		wikiPage = r.subreddit(subreddit).wiki['config/sidebar']
+
+		start = wikiPage.content_md[0:wikiPage.content_md.find("## UPCOMING MATCH")]
+		end = wikiPage.content_md[wikiPage.content_md.find("## ROSTER:"):]
+
+		if debug:
+			log.debug("Subreddit: "+subreddit)
+			log.debug("-" * 50)
+			log.debug(start+''.join(SFSString)+end)
+			log.debug("-" * 50)
+		else:
+			wikiPage.edit(start+''.join(SFSString)+end)
+
+	currentTeam = "VAL"
+	if teamSwitches[currentTeam]:
+		VALString = []
+		VALString.append("#**Schedule**\n\n")
+
+		stages = ["Preseason","Stage 1"]
+		for stage in stages:
+			VALString.append("**")
+			VALString.append(stage)
+			VALString.append("**\n\n")
+			VALString.append("Date|Time| |Opponent|Result\n")
+			VALString.append("---|---|---|---|---\n")
+
+			for match in stageMatches[stage]:
+				if match['home'] == currentTeam or match['away'] == currentTeam:
+					VALString.append(match['date'].astimezone(timezones['PST']).strftime("%m/%d|%I:%M"))
+					VALString.append("||")
+					if match['home'] == currentTeam:
+						VALString.append(teams[match['away']])
+					else:
+						VALString.append(teams[match['home']])
+					VALString.append("|")
+					VALString.append("N/A")
+
+					VALString.append("\n")
+
+			VALString.append("\n")
+
+		subreddit = "SubTestBot1"
+		wikiPage = r.subreddit(subreddit).wiki['config/sidebar']
+
+		start = wikiPage.content_md[0:wikiPage.content_md.find("#**Schedule**")]
+
+		if debug:
+			log.debug("Subreddit: "+subreddit)
+			log.debug("-" * 50)
+			log.debug(start +''.join(VALString))
+			log.debug("-" * 50)
+		else:
+			wikiPage.edit(start +''.join(VALString))
 
 	log.debug("Run complete after: %d", int(time.perf_counter() - startTime))
 	if once:

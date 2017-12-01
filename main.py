@@ -92,11 +92,11 @@ except configparser.NoSectionError:
 	log.error("User " + user + " not in praw.ini, aborting")
 	sys.exit(0)
 
+log.info("Logged into reddit as /u/" + str(r.user.me()))
+
 while True:
 	startTime = time.perf_counter()
 	log.debug("Starting run")
-
-	log.info("Logged into reddit as /u/" + str(r.user.me()))
 
 	url = "https://overwatchleague.com/en-us/api/schedule"
 	try:

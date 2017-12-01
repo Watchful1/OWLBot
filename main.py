@@ -266,3 +266,5 @@ while True:
 	log.debug("Run complete after: %d", int(time.perf_counter() - startTime))
 	if once:
 		break
+
+	time.sleep(15 * 60)

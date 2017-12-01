@@ -142,8 +142,8 @@ while True:
 			# log.debug("Match: " + game['home'] + " vs " + game['away'] + " at " + game['date'].astimezone(
 			# 	timezones['EST']).strftime("%m/%d %I:%M"))
 
-	for team in teamMatches:
-		log.debug(team + ": " + str(len(teamMatches[team])))
+	# for team in teamMatches:
+	# 	log.debug(team + ": " + str(len(teamMatches[team])))
 
 	currentTeam = "SFS"
 	if teamSwitches[currentTeam]:

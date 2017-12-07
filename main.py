@@ -65,7 +65,9 @@ debug = False
 user = None
 teamSwitches = {
 	'SFS': True,
-	'GLA': True
+	'GLA': True,
+	'OWL': True,
+	'BOS': True
 }
 if len(sys.argv) >= 2:
 	user = sys.argv[1]
@@ -74,10 +76,9 @@ if len(sys.argv) >= 2:
 			once = True
 		elif arg == 'debug':
 			debug = True
-		elif arg == 'noSFS':
-			teamSwitches['SFS'] = False
-		elif arg == 'noGLA':
-			teamSwitches['GLA'] = False
+		elif arg.startswith('no'):
+			teamSwitches[arg[2:]] = False
+			log.debug("Skipping "+arg[2:])
 else:
 	log.error("No user specified, aborting")
 	sys.exit(0)
@@ -98,7 +99,7 @@ while True:
 	startTime = time.perf_counter()
 	log.debug("Starting run")
 
-	url = "https://overwatchleague.com/en-us/api/schedule"
+	url = "https://api.overwatchleague.com/schedule"
 	try:
 		requestTime = time.perf_counter()
 		json = requests.get(url, headers={'User-Agent': USER_AGENT})
@@ -153,7 +154,7 @@ while True:
 		SFSString.append(":---------|:----------:\n")
 		nextMatch = 0
 		currentTime = datetime.datetime.utcnow().replace(tzinfo=timezone.utc)
-		for i,match in enumerate(teamMatches['SFS']):
+		for i,match in enumerate(teamMatches[currentTeam]):
 			if match['date'] > currentTime:
 				nextMatch = i
 				break
@@ -262,6 +263,77 @@ while True:
 			log.debug("-" * 50)
 		else:
 			wikiPage.edit(start +''.join(GLAString))
+
+	currentTeam = "OWL"
+	if teamSwitches[currentTeam]:
+		OWLString = []
+		OWLString.append("#**Schedule**\n\n")
+
+
+		subreddit = "SubTestBot1"
+		wikiPage = r.subreddit(subreddit).wiki['config/sidebar']
+
+		start = wikiPage.content_md[0:wikiPage.content_md.find("#**Schedule**")]
+
+		if debug:
+			log.debug("Subreddit: "+subreddit)
+			log.debug("-" * 50)
+			log.debug(start +''.join(OWLString))
+			log.debug("-" * 50)
+		else:
+			wikiPage.edit(start +''.join(OWLString))
+
+	currentTeam = "BOS"
+	if teamSwitches[currentTeam]:
+		BOSString = []
+		BOSString.append("#Next Match\n\n")
+		BOSString.append("Watch live on the [Overwatch League](https://overwatchleague.com/en-us/) website!\n")
+
+		nextMatch = teamMatches[currentTeam][0]
+		currentTime = datetime.datetime.utcnow().replace(tzinfo=timezone.utc)
+		for i,match in enumerate(teamMatches[currentTeam]):
+			if match['date'] > currentTime:
+				nextMatch = match
+				break
+
+		BOSString.append("######")
+		BOSString.append(nextMatch['stage'])
+		BOSString.append("\n\n")
+		BOSString.append("Date | Against\n")
+		BOSString.append(":--:|:--:|\n")
+
+		matchDate = nextMatch['date'].astimezone(timezones['EST'])
+		BOSString.append(matchDate.strftime("%b"))
+		BOSString.append(". ")
+		BOSString.append(str(matchDate.day))
+		BOSString.append(" @ ")
+		BOSString.append(str(int(matchDate.strftime("%I"))))
+		if matchDate.strftime("%M") != '00':
+			BOSString.append(matchDate.strftime("%M"))
+		BOSString.append(" ")
+		BOSString.append(matchDate.strftime("%p").lower())
+		BOSString.append(" EST")
+		BOSString.append("|")
+		if nextMatch['home'] == currentTeam:
+			BOSString.append(teams[nextMatch['away']])
+		else:
+			BOSString.append(teams[nextMatch['home']])
+		BOSString.append("\n\n")
+
+		subreddit = "BostonUprising"
+		wikiPage = r.subreddit(subreddit).wiki['config/sidebar']
+
+		start = wikiPage.content_md[0:wikiPage.content_md.find("#Next Match")]
+		end = wikiPage.content_md[wikiPage.content_md.find("#Team Roster"):]
+
+		if debug:
+			log.debug("Subreddit: "+subreddit)
+			log.debug("-" * 50)
+			log.debug(start+''.join(BOSString)+end)
+			log.debug("-" * 50)
+		else:
+			wikiPage.edit(start+''.join(BOSString)+end)
+
 
 	log.debug("Run complete after: %d", int(time.perf_counter() - startTime))
 	if once:

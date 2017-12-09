@@ -66,7 +66,6 @@ user = None
 teamSwitches = {
 	'SFS': True,
 	'GLA': True,
-	'OWL': True,
 	'BOS': True
 }
 if len(sys.argv) >= 2:
@@ -263,25 +262,6 @@ while True:
 			log.debug("-" * 50)
 		else:
 			wikiPage.edit(start +''.join(GLAString))
-
-	currentTeam = "OWL"
-	if teamSwitches[currentTeam]:
-		OWLString = []
-		OWLString.append("#**Schedule**\n\n")
-
-
-		subreddit = "SubTestBot1"
-		wikiPage = r.subreddit(subreddit).wiki['config/sidebar']
-
-		start = wikiPage.content_md[0:wikiPage.content_md.find("#**Schedule**")]
-
-		if debug:
-			log.debug("Subreddit: "+subreddit)
-			log.debug("-" * 50)
-			log.debug(start +''.join(OWLString))
-			log.debug("-" * 50)
-		else:
-			wikiPage.edit(start +''.join(OWLString))
 
 	currentTeam = "BOS"
 	if teamSwitches[currentTeam]:

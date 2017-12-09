@@ -9,7 +9,7 @@ import configparser
 import signal
 import requests
 import traceback
-import datetime
+from datetime import datetime
 from datetime import timezone
 from datetime import timedelta
 
@@ -114,6 +114,7 @@ while True:
 	stageMatches = {}
 	teamMatches = {}
 	teams = {}
+	currentStage = "Stage 1"
 	for stage in stages:
 		stageName = stage['name']
 		stageMatches[stageName] = []
@@ -122,7 +123,7 @@ while True:
 				continue
 			game = {'home': match['competitors'][0]['abbreviatedName'],
 					'away': match['competitors'][1]['abbreviatedName'],
-					'date': datetime.datetime.strptime(match['startDate'], "%Y-%m-%dT%H:%M:%S.000Z").replace(
+					'date': datetime.strptime(match['startDate'], "%Y-%m-%dT%H:%M:%S.000Z").replace(
 						tzinfo=timezone.utc),
 					'stage': stageName
 					}
@@ -139,6 +140,11 @@ while True:
 
 			teamMatches[game['home']].append(game)
 			teamMatches[game['away']].append(game)
+
+			if game['date'] - timedelta(days=7) < datetime.utcnow() and stageName != "Preseason" and currentStage != stageName:
+				log.debug("Setting current stage to: "+stageName)
+				currentStage = stageName
+
 			# log.debug("Match: " + game['home'] + " vs " + game['away'] + " at " + game['date'].astimezone(
 			# 	timezones['EST']).strftime("%m/%d %I:%M"))
 
@@ -152,7 +158,7 @@ while True:
 		SFSString.append("Date | vs.\n")
 		SFSString.append(":---------|:----------:\n")
 		nextMatch = 0
-		currentTime = datetime.datetime.utcnow().replace(tzinfo=timezone.utc)
+		currentTime = datetime.utcnow().replace(tzinfo=timezone.utc)
 		for i,match in enumerate(teamMatches[currentTeam]):
 			if match['date'] > currentTime:
 				nextMatch = i

@@ -177,14 +177,13 @@ while True:
 		SFSString.append("\n")
 		SFSString.append("[See full schedule here](https://www.reddit.com/r/SFShock_OW/wiki/matches)\n\n")
 
-		stageName = "Stage 1"
 		SFSString.append("## OVERWATCH LEAGUE | ")
-		SFSString.append(stageName)
+		SFSString.append(currentStage)
 		SFSString.append("\n\n")
 		SFSString.append("Date | vs. | Final Result\n")
 		SFSString.append(":---------|:----------:|:----------:\n")
 		foundOpponents = [currentTeam]
-		for match in stageMatches[stageName]:
+		for match in stageMatches[currentStage]:
 			if match['home'] == currentTeam or match['away'] == currentTeam:
 				matchDate = match['date'].astimezone(timezones['PST'])
 				SFSString.append(matchDate.strftime("%b"))
@@ -233,28 +232,26 @@ while True:
 		GLAString = []
 		GLAString.append("#**Schedule**\n\n")
 
-		stages = ["Preseason","Stage 1"]
-		for stage in stages:
-			GLAString.append("**")
-			GLAString.append(stage)
-			GLAString.append("**\n\n")
-			GLAString.append("Date|Time| |Opponent|Result\n")
-			GLAString.append("---|---|---|---|---\n")
+		GLAString.append("**")
+		GLAString.append(currentStage)
+		GLAString.append("**\n\n")
+		GLAString.append("Date|Time| |Opponent|Result\n")
+		GLAString.append("---|---|---|---|---\n")
 
-			for match in stageMatches[stage]:
-				if match['home'] == currentTeam or match['away'] == currentTeam:
-					GLAString.append(match['date'].astimezone(timezones['PST']).strftime("%m/%d|%I:%M"))
-					GLAString.append("||")
-					if match['home'] == currentTeam:
-						GLAString.append(teams[match['away']])
-					else:
-						GLAString.append(teams[match['home']])
-					GLAString.append("|")
-					GLAString.append("N/A")
+		for match in stageMatches[currentStage]:
+			if match['home'] == currentTeam or match['away'] == currentTeam:
+				GLAString.append(match['date'].astimezone(timezones['PST']).strftime("%m/%d|%I:%M"))
+				GLAString.append("||")
+				if match['home'] == currentTeam:
+					GLAString.append(teams[match['away']])
+				else:
+					GLAString.append(teams[match['home']])
+				GLAString.append("|")
+				GLAString.append("N/A")
 
-					GLAString.append("\n")
+				GLAString.append("\n")
 
-			GLAString.append("\n")
+		GLAString.append("\n")
 
 		subreddit = "lagladiators"
 		wikiPage = r.subreddit(subreddit).wiki['config/sidebar']

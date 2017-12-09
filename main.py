@@ -60,13 +60,15 @@ def day_with_suffix(date):
 
 signal.signal(signal.SIGINT, signal_handler)
 
+# GLA, SFS, BOS, SEO, FLA, LDN, NYE, SHD, PHI, HOU, DAL, VAL
 once = False
 debug = False
 user = None
 teamSwitches = {
 	'SFS': True,
 	'GLA': True,
-	'BOS': True
+	'BOS': True,
+	'PHI': True
 }
 if len(sys.argv) >= 2:
 	user = sys.argv[1]
@@ -78,6 +80,11 @@ if len(sys.argv) >= 2:
 		elif arg.startswith('no'):
 			teamSwitches[arg[2:]] = False
 			log.debug("Skipping "+arg[2:])
+		elif arg.startswith('only'):
+			for team in teamSwitches:
+				teamSwitches[team] = False
+			teamSwitches[arg[4:]] = True
+			log.debug("Only "+arg[4:])
 else:
 	log.error("No user specified, aborting")
 	sys.exit(0)
@@ -153,10 +160,10 @@ while True:
 
 	currentTeam = "SFS"
 	if teamSwitches[currentTeam]:
-		SFSString = []
-		SFSString.append("## UPCOMING MATCH: \n\n")
-		SFSString.append("Date | vs.\n")
-		SFSString.append(":---------|:----------:\n")
+		bldr = []
+		bldr.append("## UPCOMING MATCH: \n\n")
+		bldr.append("Date | vs.\n")
+		bldr.append(":---------|:----------:\n")
 		nextMatch = 0
 		currentTime = datetime.utcnow().replace(tzinfo=timezone.utc)
 		for i,match in enumerate(teamMatches[currentTeam]):
@@ -166,39 +173,39 @@ while True:
 
 		match = teamMatches[currentTeam][nextMatch]
 		matchDate = match['date'].astimezone(timezones['PST'])
-		SFSString.append(matchDate.strftime("%b"))
-		SFSString.append(" ")
-		SFSString.append(day_with_suffix(matchDate))
-		SFSString.append("|")
+		bldr.append(matchDate.strftime("%b"))
+		bldr.append(" ")
+		bldr.append(day_with_suffix(matchDate))
+		bldr.append("|")
 		if match['home'] == currentTeam:
-			SFSString.append(teams[match['away']])
+			bldr.append(teams[match['away']])
 		else:
-			SFSString.append(teams[match['home']])
-		SFSString.append("\n")
-		SFSString.append("[See full schedule here](https://www.reddit.com/r/SFShock_OW/wiki/matches)\n\n")
+			bldr.append(teams[match['home']])
+		bldr.append("\n")
+		bldr.append("[See full schedule here](https://www.reddit.com/r/SFShock_OW/wiki/matches)\n\n")
 
-		SFSString.append("## OVERWATCH LEAGUE | ")
-		SFSString.append(currentStage)
-		SFSString.append("\n\n")
-		SFSString.append("Date | vs. | Final Result\n")
-		SFSString.append(":---------|:----------:|:----------:\n")
+		bldr.append("## OVERWATCH LEAGUE | ")
+		bldr.append(currentStage)
+		bldr.append("\n\n")
+		bldr.append("Date | vs. | Final Result\n")
+		bldr.append(":---------|:----------:|:----------:\n")
 		foundOpponents = [currentTeam]
 		for match in stageMatches[currentStage]:
 			if match['home'] == currentTeam or match['away'] == currentTeam:
 				matchDate = match['date'].astimezone(timezones['PST'])
-				SFSString.append(matchDate.strftime("%b"))
-				SFSString.append(" ")
-				SFSString.append(day_with_suffix(matchDate))
-				SFSString.append("|")
+				bldr.append(matchDate.strftime("%b"))
+				bldr.append(" ")
+				bldr.append(day_with_suffix(matchDate))
+				bldr.append("|")
 				if match['home'] == currentTeam:
-					SFSString.append(teams[match['away']])
+					bldr.append(teams[match['away']])
 					foundOpponents.append(match['away'])
 				else:
-					SFSString.append(teams[match['home']])
+					bldr.append(teams[match['home']])
 					foundOpponents.append(match['home'])
-				SFSString.append("|")
-				SFSString.append("N/A")
-				SFSString.append("\n")
+				bldr.append("|")
+				bldr.append("N/A")
+				bldr.append("\n")
 
 		missingOpponents = []
 		for team in teams:
@@ -206,12 +213,12 @@ while True:
 				missingOpponents.append(team)
 
 		for team in missingOpponents:
-			SFSString.append("X|")
-			SFSString.append(teams[team])
-			SFSString.append("|X")
+			bldr.append("X|")
+			bldr.append(teams[team])
+			bldr.append("|X")
 
 
-		SFSString.append("\n\n\n")
+		bldr.append("\n\n\n")
 
 		subreddit = "SFShock_OW"
 		wikiPage = r.subreddit(subreddit).wiki['config/sidebar']
@@ -222,36 +229,36 @@ while True:
 		if debug:
 			log.debug("Subreddit: "+subreddit)
 			log.debug("-" * 50)
-			log.debug(start+''.join(SFSString)+end)
+			log.debug(start +''.join(bldr) + end)
 			log.debug("-" * 50)
 		else:
-			wikiPage.edit(start+''.join(SFSString)+end)
+			wikiPage.edit(start +''.join(bldr) + end)
 
 	currentTeam = "GLA"
 	if teamSwitches[currentTeam]:
-		GLAString = []
-		GLAString.append("#**Schedule**\n\n")
+		bldr = []
+		bldr.append("#**Schedule**\n\n")
 
-		GLAString.append("**")
-		GLAString.append(currentStage)
-		GLAString.append("**\n\n")
-		GLAString.append("Date|Time| |Opponent|Result\n")
-		GLAString.append("---|---|---|---|---\n")
+		bldr.append("**")
+		bldr.append(currentStage)
+		bldr.append("**\n\n")
+		bldr.append("Date|Time| |Opponent|Result\n")
+		bldr.append("---|---|---|---|---\n")
 
 		for match in stageMatches[currentStage]:
 			if match['home'] == currentTeam or match['away'] == currentTeam:
-				GLAString.append(match['date'].astimezone(timezones['PST']).strftime("%m/%d|%I:%M"))
-				GLAString.append("||")
+				bldr.append(match['date'].astimezone(timezones['PST']).strftime("%m/%d|%I:%M"))
+				bldr.append("||")
 				if match['home'] == currentTeam:
-					GLAString.append(teams[match['away']])
+					bldr.append(teams[match['away']])
 				else:
-					GLAString.append(teams[match['home']])
-				GLAString.append("|")
-				GLAString.append("N/A")
+					bldr.append(teams[match['home']])
+				bldr.append("|")
+				bldr.append("N/A")
 
-				GLAString.append("\n")
+				bldr.append("\n")
 
-		GLAString.append("\n")
+		bldr.append("\n")
 
 		subreddit = "lagladiators"
 		wikiPage = r.subreddit(subreddit).wiki['config/sidebar']
@@ -261,16 +268,16 @@ while True:
 		if debug:
 			log.debug("Subreddit: "+subreddit)
 			log.debug("-" * 50)
-			log.debug(start +''.join(GLAString))
+			log.debug(start +''.join(bldr))
 			log.debug("-" * 50)
 		else:
-			wikiPage.edit(start +''.join(GLAString))
+			wikiPage.edit(start +''.join(bldr))
 
 	currentTeam = "BOS"
 	if teamSwitches[currentTeam]:
-		BOSString = []
-		BOSString.append("#Next Match\n\n")
-		BOSString.append("Watch live on the [Overwatch League](https://overwatchleague.com/en-us/) website!\n")
+		bldr = []
+		bldr.append("#Next Match\n\n")
+		bldr.append("Watch live on the [Overwatch League](https://overwatchleague.com/en-us/) website!\n")
 
 		nextMatch = teamMatches[currentTeam][0]
 		currentTime = datetime.datetime.utcnow().replace(tzinfo=timezone.utc)
@@ -279,29 +286,29 @@ while True:
 				nextMatch = match
 				break
 
-		BOSString.append("######")
-		BOSString.append(nextMatch['stage'])
-		BOSString.append("\n\n")
-		BOSString.append("Date | Against\n")
-		BOSString.append(":--:|:--:|\n")
+		bldr.append("######")
+		bldr.append(nextMatch['stage'])
+		bldr.append("\n\n")
+		bldr.append("Date | Against\n")
+		bldr.append(":--:|:--:|\n")
 
 		matchDate = nextMatch['date'].astimezone(timezones['EST'])
-		BOSString.append(matchDate.strftime("%b"))
-		BOSString.append(". ")
-		BOSString.append(str(matchDate.day))
-		BOSString.append(" @ ")
-		BOSString.append(str(int(matchDate.strftime("%I"))))
+		bldr.append(matchDate.strftime("%b"))
+		bldr.append(". ")
+		bldr.append(str(matchDate.day))
+		bldr.append(" @ ")
+		bldr.append(str(int(matchDate.strftime("%I"))))
 		if matchDate.strftime("%M") != '00':
-			BOSString.append(matchDate.strftime("%M"))
-		BOSString.append(" ")
-		BOSString.append(matchDate.strftime("%p").lower())
-		BOSString.append(" EST")
-		BOSString.append("|")
+			bldr.append(matchDate.strftime("%M"))
+		bldr.append(" ")
+		bldr.append(matchDate.strftime("%p").lower())
+		bldr.append(" EST")
+		bldr.append("|")
 		if nextMatch['home'] == currentTeam:
-			BOSString.append(teams[nextMatch['away']])
+			bldr.append(teams[nextMatch['away']])
 		else:
-			BOSString.append(teams[nextMatch['home']])
-		BOSString.append("\n\n")
+			bldr.append(teams[nextMatch['home']])
+		bldr.append("\n\n")
 
 		subreddit = "BostonUprising"
 		wikiPage = r.subreddit(subreddit).wiki['config/sidebar']
@@ -312,11 +319,31 @@ while True:
 		if debug:
 			log.debug("Subreddit: "+subreddit)
 			log.debug("-" * 50)
-			log.debug(start+''.join(BOSString)+end)
+			log.debug(start +''.join(bldr) + end)
 			log.debug("-" * 50)
 		else:
-			wikiPage.edit(start+''.join(BOSString)+end)
+			wikiPage.edit(start +''.join(bldr) + end)
 
+	currentTeam = "PHI"
+	if teamSwitches[currentTeam]:
+		bldr = []
+		bldr.append("#Next Match\n\n")
+
+
+
+		subreddit = "BostonUprising"
+		wikiPage = r.subreddit(subreddit).wiki['config/sidebar']
+
+		start = wikiPage.content_md[0:wikiPage.content_md.find("#Next Match")]
+		end = wikiPage.content_md[wikiPage.content_md.find("#Team Roster"):]
+
+		if debug:
+			log.debug("Subreddit: "+subreddit)
+			log.debug("-" * 50)
+			log.debug(start +''.join(bldr) + end)
+			log.debug("-" * 50)
+		else:
+			wikiPage.edit(start +''.join(bldr) + end)
 
 	log.debug("Run complete after: %d", int(time.perf_counter() - startTime))
 	if once:

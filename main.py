@@ -60,9 +60,9 @@ def day_with_suffix(date):
 
 def get_home_away_for_team(match, team):
 	if match['home'] == team:
-		return 'away'
-	elif match['away'] == team:
 		return 'home'
+	elif match['away'] == team:
+		return 'away'
 	else:
 		None
 
@@ -211,20 +211,25 @@ while True:
 		bldr.append(":---------|:----------:|:----------:\n")
 		foundOpponents = [currentTeam]
 		for match in stageMatches[currentStage]:
-			if match['home'] == currentTeam or match['away'] == currentTeam:
+			homeAway = get_home_away_for_team(match, currentTeam)
+			if homeAway is not None:
 				matchDate = match['date'].astimezone(timezones['PST'])
 				bldr.append(matchDate.strftime("%b"))
 				bldr.append(" ")
 				bldr.append(day_with_suffix(matchDate))
 				bldr.append("|")
-				if match['home'] == currentTeam:
-					bldr.append(teams[match['away']])
-					foundOpponents.append(match['away'])
-				else:
-					bldr.append(teams[match['home']])
-					foundOpponents.append(match['home'])
+				bldr.append(teams[match[reverse_home_away(homeAway)]])
+				foundOpponents.append(match[reverse_home_away(homeAway)])
 				bldr.append("|")
-				bldr.append("N/A")
+
+				teamScore = match[homeAway+'Score']
+				opponentScore = match[reverse_home_away(homeAway)+'Score']
+				if teamScore == 0 and opponentScore == 0:
+					bldr.append("N/A")
+				else:
+					bldr.append(str(teamScore))
+					bldr.append(" - ")
+					bldr.append(str(opponentScore))
 				bldr.append("\n")
 
 		missingOpponents = []
@@ -266,15 +271,26 @@ while True:
 		bldr.append("---|---|---|---|---\n")
 
 		for match in stageMatches[currentStage]:
-			if match['home'] == currentTeam or match['away'] == currentTeam:
-				bldr.append(match['date'].astimezone(timezones['PST']).strftime("%m/%d|%I:%M"))
+			homeAway = get_home_away_for_team(match, currentTeam)
+			if homeAway is not None:
+				matchDate = match['date'].astimezone(timezones['PST'])
+				bldr.append(matchDate.strftime("%m/%d|%I:%M"))
 				bldr.append("||")
-				if match['home'] == currentTeam:
-					bldr.append(teams[match['away']])
-				else:
-					bldr.append(teams[match['home']])
+				bldr.append(teams[match[reverse_home_away(homeAway)]])
 				bldr.append("|")
-				bldr.append("N/A")
+				teamScore = match[homeAway+'Score']
+				opponentScore = match[reverse_home_away(homeAway)+'Score']
+				if teamScore == 0 and opponentScore == 0:
+					bldr.append("N/A")
+				else:
+					hideScores = (matchDate + timedelta(days=7) > datetime.utcnow().replace(tzinfo=timezone.utc))
+					if hideScores:
+						bldr.append("[")
+					bldr.append(str(teamScore))
+					bldr.append(" - ")
+					bldr.append(str(opponentScore))
+					if hideScores:
+						bldr.append("](/spoiler)")
 
 				bldr.append("\n")
 
@@ -364,7 +380,7 @@ while True:
 				bldr.append(str(matchDate.hour))
 				bldr.append(matchDate.strftime(" %p"))
 				bldr.append("|")
-				bldr.append(teams[match[homeAway]])
+				bldr.append(teams[match[reverse_home_away(homeAway)]])
 				bldr.append("|")
 
 				teamScore = match[homeAway+'Score']

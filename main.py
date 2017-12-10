@@ -319,7 +319,7 @@ while True:
 		bldr.append("Watch live on the [Overwatch League](https://overwatchleague.com/en-us/) website!\n")
 
 		nextMatch = teamMatches[currentTeam][0]
-		currentTime = datetime.datetime.utcnow().replace(tzinfo=timezone.utc)
+		currentTime = datetime.utcnow().replace(tzinfo=timezone.utc)
 		for i,match in enumerate(teamMatches[currentTeam]):
 			if match['date'] > currentTime:
 				nextMatch = match

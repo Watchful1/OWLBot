@@ -289,7 +289,7 @@ while True:
 						if hideScores:
 							bldr.append("[")
 						bldr.append(str(teamScore))
-						bldr.append(" - ")
+						bldr.append("-")
 						bldr.append(str(opponentScore))
 						if hideScores:
 							bldr.append("](/spoiler)")

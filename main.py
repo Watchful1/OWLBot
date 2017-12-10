@@ -58,6 +58,24 @@ def day_with_suffix(date):
 	return str(date.day) + suffix
 
 
+def get_home_away_for_team(match, team):
+	if match['home'] == team:
+		return 'away'
+	elif match['away'] == team:
+		return 'home'
+	else:
+		None
+
+
+def reverse_home_away(homeAway):
+	if homeAway == 'home':
+		return 'away'
+	elif homeAway == 'away':
+		return 'home'
+	else:
+		return None
+
+
 signal.signal(signal.SIGINT, signal_handler)
 
 # GLA, SFS, BOS, SEO, FLA, LDN, NYE, SHD, PHI, HOU, DAL, VAL
@@ -130,6 +148,8 @@ while True:
 				continue
 			game = {'home': match['competitors'][0]['abbreviatedName'],
 					'away': match['competitors'][1]['abbreviatedName'],
+					'homeScore': match['scores'][0]['value'],
+					'awayScore': match['scores'][1]['value'],
 					'date': datetime.strptime(match['startDate'], "%Y-%m-%dT%H:%M:%S.000Z").replace(
 						tzinfo=timezone.utc),
 					'stage': stageName
@@ -148,7 +168,7 @@ while True:
 			teamMatches[game['home']].append(game)
 			teamMatches[game['away']].append(game)
 
-			if game['date'] - timedelta(days=7) < datetime.utcnow() and stageName != "Preseason" and currentStage != stageName:
+			if game['date'] - timedelta(days=7) < datetime.utcnow().replace(tzinfo=timezone.utc) and stageName != "Preseason" and currentStage != stageName:
 				log.debug("Setting current stage to: "+stageName)
 				currentStage = stageName
 
@@ -327,15 +347,44 @@ while True:
 	currentTeam = "PHI"
 	if teamSwitches[currentTeam]:
 		bldr = []
-		bldr.append("#Next Match\n\n")
+		bldr.append("**Schedule**\n\n")
 
+		bldr.append(currentStage)
+		bldr.append("\n\n")
+		bldr.append("Date|Time|Opponent|Result\n")
+		bldr.append("---|---|---|---\n")
 
+		for match in stageMatches[currentStage]:
+			homeAway = get_home_away_for_team(match, currentTeam)
+			if homeAway is not None:
+				matchDate = match['date'].astimezone(timezones['EST'])
+				bldr.append(matchDate.strftime("%b "))
+				bldr.append(str(matchDate.day))
+				bldr.append("|")
+				bldr.append(str(matchDate.hour))
+				bldr.append(matchDate.strftime(" %p"))
+				bldr.append("|")
+				bldr.append(teams[match[homeAway]])
+				bldr.append("|")
 
-		subreddit = "BostonUprising"
+				teamScore = match[homeAway+'Score']
+				opponentScore = match[reverse_home_away(homeAway)+'Score']
+				if teamScore == 0 and opponentScore == 0:
+					bldr.append("TBD")
+				else:
+					bldr.append(str(teamScore))
+					bldr.append(" - ")
+					bldr.append(str(opponentScore))
+
+				bldr.append("\n")
+
+		bldr.append("\n")
+
+		subreddit = "PHL_Fusion"
 		wikiPage = r.subreddit(subreddit).wiki['config/sidebar']
 
-		start = wikiPage.content_md[0:wikiPage.content_md.find("#Next Match")]
-		end = wikiPage.content_md[wikiPage.content_md.find("#Team Roster"):]
+		start = wikiPage.content_md[0:wikiPage.content_md.find("**Schedule**")]
+		end = wikiPage.content_md[wikiPage.content_md.find("**Overwatch Related Subreddits**"):]
 
 		if debug:
 			log.debug("Subreddit: "+subreddit)

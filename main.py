@@ -264,35 +264,38 @@ while True:
 		bldr = []
 		bldr.append("#**Schedule**\n\n")
 
-		bldr.append("**")
-		bldr.append(currentStage)
-		bldr.append("**\n\n")
-		bldr.append("Date|Time| |Opponent|Result\n")
-		bldr.append("---|---|---|---|---\n")
+		currentStages = ['Preseason', currentStage]
+		for stage in currentStages:
+			bldr.append("**")
+			bldr.append(stage)
+			bldr.append("**\n\n")
+			bldr.append("Date|Time| |Opponent|Result\n")
+			bldr.append("---|---|---|---|---\n")
 
-		for match in stageMatches[currentStage]:
-			homeAway = get_home_away_for_team(match, currentTeam)
-			if homeAway is not None:
-				matchDate = match['date'].astimezone(timezones['PST'])
-				bldr.append(matchDate.strftime("%m/%d|%I:%M"))
-				bldr.append("||")
-				bldr.append(teams[match[reverse_home_away(homeAway)]])
-				bldr.append("|")
-				teamScore = match[homeAway+'Score']
-				opponentScore = match[reverse_home_away(homeAway)+'Score']
-				if teamScore == 0 and opponentScore == 0:
-					bldr.append("N/A")
-				else:
-					hideScores = (matchDate + timedelta(days=7) > datetime.utcnow().replace(tzinfo=timezone.utc))
-					if hideScores:
-						bldr.append("[")
-					bldr.append(str(teamScore))
-					bldr.append(" - ")
-					bldr.append(str(opponentScore))
-					if hideScores:
-						bldr.append("](/spoiler)")
+			for match in stageMatches[stage]:
+				homeAway = get_home_away_for_team(match, currentTeam)
+				if homeAway is not None:
+					matchDate = match['date'].astimezone(timezones['PST'])
+					bldr.append(matchDate.strftime("%m/%d|%I:%M"))
+					bldr.append("||")
+					bldr.append(teams[match[reverse_home_away(homeAway)]])
+					bldr.append("|")
+					teamScore = match[homeAway+'Score']
+					opponentScore = match[reverse_home_away(homeAway)+'Score']
+					if teamScore == 0 and opponentScore == 0:
+						bldr.append("N/A")
+					else:
+						hideScores = (matchDate + timedelta(days=7) > datetime.utcnow().replace(tzinfo=timezone.utc))
+						if hideScores:
+							bldr.append("[")
+						bldr.append(str(teamScore))
+						bldr.append(" - ")
+						bldr.append(str(opponentScore))
+						if hideScores:
+							bldr.append("](/spoiler)")
 
-				bldr.append("\n")
+					bldr.append("\n")
+			bldr.append("\n")
 
 		bldr.append("\n")
 

@@ -26,6 +26,21 @@ timezones = {'EST': timezone(timedelta(hours=-5)),
              'PST': timezone(timedelta(hours=-8))
              }
 
+# GLA, SFS, BOS, SEO, FLA, LDN, NYE, SHD, PHI, HOU, DAL, VAL
+teamNames = {'GLA': {'short': "Gladiators", 'medium': ""},
+             'SFS': {'short': "Shock", 'medium': ""},
+             'BOS': {'short': "Uprising", 'medium': ""},
+             'SEO': {'short': "Dynasty", 'medium': ""},
+             'FLA': {'short': "Mayhem", 'medium': ""},
+             'LDN': {'short': "Spitfire", 'medium': ""},
+             'NYE': {'short': "Excelsior", 'medium': ""},
+             'SHD': {'short': "Dragons", 'medium': ""},
+             'PHI': {'short': "Fusion", 'medium': ""},
+             'HOU': {'short': "Outlaws", 'medium': ""},
+             'DAL': {'short': "Fuel", 'medium': ""},
+             'VAL': {'short': "Valiant", 'medium': ""}
+             }
+
 ### Logging setup ###
 LOG_LEVEL = logging.DEBUG
 if not os.path.exists(LOG_FOLDER_NAME):
@@ -254,7 +269,7 @@ while True:
 		if debug:
 			log.debug("Subreddit: "+subreddit)
 			log.debug("-" * 50)
-			log.debug(start +''.join(bldr) + end)
+			log.debug("\n"+start +''.join(bldr) + end)
 			log.debug("-" * 50)
 		else:
 			wikiPage.edit(start +''.join(bldr) + end)
@@ -307,7 +322,7 @@ while True:
 		if debug:
 			log.debug("Subreddit: "+subreddit)
 			log.debug("-" * 50)
-			log.debug(start +''.join(bldr))
+			log.debug("\n"+start +''.join(bldr))
 			log.debug("-" * 50)
 		else:
 			wikiPage.edit(start +''.join(bldr))
@@ -315,8 +330,7 @@ while True:
 	currentTeam = "BOS"
 	if teamSwitches[currentTeam]:
 		bldr = []
-		bldr.append("#Next Match\n\n")
-		bldr.append("Watch live on the [Overwatch League](https://overwatchleague.com/en-us/) website!\n")
+		bldr.append("##Next Match\n\n")
 
 		nextMatch = teamMatches[currentTeam][0]
 		currentTime = datetime.utcnow().replace(tzinfo=timezone.utc)
@@ -325,40 +339,71 @@ while True:
 				nextMatch = match
 				break
 
-		bldr.append("######")
-		bldr.append(nextMatch['stage'])
-		bldr.append("\n\n")
-		bldr.append("Date | Against\n")
-		bldr.append(":--:|:--:|\n")
+		bldr.append("Date | Time | Opponent\n")
+		bldr.append(":--:|:--:|:--:\n")
 
 		matchDate = nextMatch['date'].astimezone(timezones['EST'])
-		bldr.append(matchDate.strftime("%b"))
-		bldr.append(". ")
+		bldr.append(matchDate.strftime("%b "))
 		bldr.append(str(matchDate.day))
-		bldr.append(" @ ")
-		bldr.append(str(int(matchDate.strftime("%I"))))
-		if matchDate.strftime("%M") != '00':
-			bldr.append(matchDate.strftime("%M"))
-		bldr.append(" ")
-		bldr.append(matchDate.strftime("%p").lower())
-		bldr.append(" EST")
 		bldr.append("|")
-		if nextMatch['home'] == currentTeam:
-			bldr.append(teams[nextMatch['away']])
-		else:
-			bldr.append(teams[nextMatch['home']])
+		bldr.append(str(int(matchDate.strftime("%I"))))
+		bldr.append(":")
+		bldr.append(matchDate.strftime("%M"))
+		bldr.append(matchDate.strftime(" %p"))
+		bldr.append("|")
+		homeAway = get_home_away_for_team(nextMatch, currentTeam)
+		bldr.append(teamNames[nextMatch[reverse_home_away(homeAway)]]['short'])
+		bldr.append("\n\n")
+
+		bldr.append("---")
+		bldr.append("\n\n")
+		bldr.append("##")
+		bldr.append(currentStage)
+		bldr.append("\n\n")
+		bldr.append("A full match schedule can be viewed [here](https://www.reddit.com/r/BostonUprising/wiki/matches).\n\n")
+		bldr.append("Date | Time | Opponent | Result\n")
+		bldr.append(":--:|:--:|:--:|:--:\n")
+
+		for match in stageMatches[currentStage]:
+			homeAway = get_home_away_for_team(match, currentTeam)
+			if homeAway is not None:
+				matchDate = match['date'].astimezone(timezones['EST'])
+				bldr.append(matchDate.strftime("%b "))
+				bldr.append(str(matchDate.day))
+				bldr.append("|")
+				bldr.append(str(int(matchDate.strftime("%I"))))
+				bldr.append(":")
+				bldr.append(matchDate.strftime("%M"))
+				bldr.append(matchDate.strftime(" %p"))
+				bldr.append("|")
+				bldr.append(teamNames[match[reverse_home_away(homeAway)]]['short'])
+				bldr.append("|")
+
+				teamScore = match[homeAway+'Score']
+				opponentScore = match[reverse_home_away(homeAway)+'Score']
+				if teamScore == 0 and opponentScore == 0:
+					bldr.append("-")
+				else:
+					bldr.append(str(teamScore))
+					bldr.append("-")
+					bldr.append(str(opponentScore))
+
+				bldr.append("\n")
+
+		bldr.append("\n")
+		bldr.append("---")
 		bldr.append("\n\n")
 
 		subreddit = "BostonUprising"
 		wikiPage = r.subreddit(subreddit).wiki['config/sidebar']
 
-		start = wikiPage.content_md[0:wikiPage.content_md.find("#Next Match")]
-		end = wikiPage.content_md[wikiPage.content_md.find("#Team Roster"):]
+		start = wikiPage.content_md[0:wikiPage.content_md.find("##Next Match")]
+		end = wikiPage.content_md[wikiPage.content_md.find("##Roster"):]
 
 		if debug:
 			log.debug("Subreddit: "+subreddit)
 			log.debug("-" * 50)
-			log.debug(start +''.join(bldr) + end)
+			log.debug("\n"+start +''.join(bldr) + end)
 			log.debug("-" * 50)
 		else:
 			wikiPage.edit(start +''.join(bldr) + end)
@@ -380,7 +425,7 @@ while True:
 				bldr.append(matchDate.strftime("%b "))
 				bldr.append(str(matchDate.day))
 				bldr.append("|")
-				bldr.append(str(matchDate.hour))
+				bldr.append(str(int(matchDate.strftime("%I"))))
 				bldr.append(matchDate.strftime(" %p"))
 				bldr.append("|")
 				bldr.append(teams[match[reverse_home_away(homeAway)]])
@@ -392,7 +437,7 @@ while True:
 					bldr.append("TBD")
 				else:
 					bldr.append(str(teamScore))
-					bldr.append(" - ")
+					bldr.append("-")
 					bldr.append(str(opponentScore))
 
 				bldr.append("\n")
@@ -408,7 +453,7 @@ while True:
 		if debug:
 			log.debug("Subreddit: "+subreddit)
 			log.debug("-" * 50)
-			log.debug(start +''.join(bldr) + end)
+			log.debug("\n"+start +''.join(bldr) + end)
 			log.debug("-" * 50)
 		else:
 			wikiPage.edit(start +''.join(bldr) + end)

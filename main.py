@@ -269,15 +269,15 @@ while True:
 			bldr.append("**")
 			bldr.append(stage)
 			bldr.append("**\n\n")
-			bldr.append("Date|Time| |Opponent|Result\n")
-			bldr.append("---|---|---|---|---\n")
+			bldr.append("Date|Time|Opponent|Result\n")
+			bldr.append("---|---|---|---\n")
 
 			for match in stageMatches[stage]:
 				homeAway = get_home_away_for_team(match, currentTeam)
 				if homeAway is not None:
 					matchDate = match['date'].astimezone(timezones['PST'])
 					bldr.append(matchDate.strftime("%m/%d|%I:%M"))
-					bldr.append("||")
+					bldr.append("|")
 					bldr.append(teams[match[reverse_home_away(homeAway)]])
 					bldr.append("|")
 					teamScore = match[homeAway+'Score']

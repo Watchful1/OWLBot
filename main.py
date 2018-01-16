@@ -91,6 +91,17 @@ def reverse_home_away(homeAway):
 		return None
 
 
+def insert_date_sorted(list, game):
+	if len(list) == 0:
+		list.append(game)
+		return
+	for i, orderedGame in enumerate(list):
+		if game['date'] < orderedGame['date']:
+			list.insert(i, game)
+			return
+	list.append(game)
+
+
 signal.signal(signal.SIGINT, signal_handler)
 
 # GLA, SFS, BOS, SEO, FLA, LDN, NYE, SHD, PHI, HOU, DAL, VAL
@@ -169,8 +180,8 @@ while True:
 						tzinfo=timezone.utc),
 					'stage': stageName
 					}
-			matches.append(game)
-			stageMatches[stageName].append(game)
+			insert_date_sorted(matches, game)
+			insert_date_sorted(stageMatches[stageName], game)
 			if game['home'] not in teamMatches:
 				teamMatches[game['home']] = []
 			if game['away'] not in teamMatches:
@@ -180,8 +191,8 @@ while True:
 			if game['away'] not in teams:
 				teams[game['away']] = match['competitors'][1]['name']
 
-			teamMatches[game['home']].append(game)
-			teamMatches[game['away']].append(game)
+			insert_date_sorted(teamMatches[game['home']], game)
+			insert_date_sorted(teamMatches[game['away']], game)
 
 			if game['date'] - timedelta(days=7) < datetime.utcnow().replace(tzinfo=timezone.utc) and stageName != "Preseason" and currentStage != stageName:
 				log.debug("Setting current stage to: "+stageName)

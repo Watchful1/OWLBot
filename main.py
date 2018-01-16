@@ -290,7 +290,7 @@ while True:
 		bldr = []
 		bldr.append("#**Schedule**\n\n")
 
-		currentStages = ['Preseason', currentStage]
+		currentStages = [currentStage]
 		for stage in currentStages:
 			bldr.append("**")
 			bldr.append(stage)

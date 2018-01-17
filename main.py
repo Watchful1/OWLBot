@@ -256,9 +256,12 @@ while True:
 				if teamScore == 0 and opponentScore == 0:
 					bldr.append("N/A")
 				else:
-					bldr.append(str(teamScore))
-					bldr.append(" - ")
-					bldr.append(str(opponentScore))
+					scoreString = str(teamScore) + " - " + str(opponentScore)
+					bldr.append("[")
+					bldr.append(scoreString)
+					bldr.append("](#s \"")
+					bldr.append(scoreString)
+					bldr.append("\")")
 				bldr.append("\n")
 
 		missingOpponents = []

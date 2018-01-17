@@ -158,8 +158,11 @@ while True:
 			log.warning("Could not parse schedule, status: " + str(json.status_code))
 		stages = json.json()['data']['stages']
 	except Exception as err:
-		log.warning("Could not parse schedule")
+		log.warning("Could not parse schedule, skipping")
 		log.warning(traceback.format_exc())
+		time.sleep(15 * 60)
+		continue
+
 
 	matches = []
 	stageMatches = {}
@@ -283,7 +286,11 @@ while True:
 			log.debug("\n"+start +''.join(bldr) + end)
 			log.debug("-" * 50)
 		else:
-			wikiPage.edit(start +''.join(bldr) + end)
+			try:
+				wikiPage.edit(start +''.join(bldr) + end)
+			except Exception as err:
+				log.warning("Could not edit "+currentTeam+"+, skipping")
+				log.warning(traceback.format_exc())
 
 	currentTeam = "GLA"
 	if teamSwitches[currentTeam]:
@@ -336,7 +343,11 @@ while True:
 			log.debug("\n"+start +''.join(bldr))
 			log.debug("-" * 50)
 		else:
-			wikiPage.edit(start +''.join(bldr))
+			try:
+				wikiPage.edit(start +''.join(bldr))
+			except Exception as err:
+				log.warning("Could not edit "+currentTeam+"+, skipping")
+				log.warning(traceback.format_exc())
 
 	currentTeam = "BOS"
 	if teamSwitches[currentTeam]:
@@ -422,7 +433,11 @@ while True:
 			log.debug("\n"+start +''.join(bldr) + end)
 			log.debug("-" * 50)
 		else:
-			wikiPage.edit(start +''.join(bldr) + end)
+			try:
+				wikiPage.edit(start +''.join(bldr) + end)
+			except Exception as err:
+				log.warning("Could not edit "+currentTeam+"+, skipping")
+				log.warning(traceback.format_exc())
 
 	currentTeam = "PHI"
 	if teamSwitches[currentTeam]:
@@ -472,7 +487,11 @@ while True:
 			log.debug("\n"+start +''.join(bldr) + end)
 			log.debug("-" * 50)
 		else:
-			wikiPage.edit(start +''.join(bldr) + end)
+			try:
+				wikiPage.edit(start +''.join(bldr) + end)
+			except Exception as err:
+				log.warning("Could not edit "+currentTeam+"+, skipping")
+				log.warning(traceback.format_exc())
 
 	log.debug("Run complete after: %d", int(time.perf_counter() - startTime))
 	if once:

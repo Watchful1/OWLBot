@@ -292,7 +292,7 @@ while True:
 			try:
 				wikiPage.edit(start +''.join(bldr) + end)
 			except Exception as err:
-				log.warning("Could not edit "+currentTeam+"+, skipping")
+				log.warning("Could not edit "+currentTeam+", skipping")
 				log.warning(traceback.format_exc())
 
 	currentTeam = "GLA"
@@ -349,7 +349,7 @@ while True:
 			try:
 				wikiPage.edit(start +''.join(bldr))
 			except Exception as err:
-				log.warning("Could not edit "+currentTeam+"+, skipping")
+				log.warning("Could not edit "+currentTeam+", skipping")
 				log.warning(traceback.format_exc())
 
 	currentTeam = "BOS"
@@ -439,7 +439,7 @@ while True:
 			try:
 				wikiPage.edit(start +''.join(bldr) + end)
 			except Exception as err:
-				log.warning("Could not edit "+currentTeam+"+, skipping")
+				log.warning("Could not edit "+currentTeam+", skipping")
 				log.warning(traceback.format_exc())
 
 	currentTeam = "PHI"
@@ -493,7 +493,7 @@ while True:
 			try:
 				wikiPage.edit(start +''.join(bldr) + end)
 			except Exception as err:
-				log.warning("Could not edit "+currentTeam+"+, skipping")
+				log.warning("Could not edit "+currentTeam+", skipping")
 				log.warning(traceback.format_exc())
 
 	log.debug("Run complete after: %d", int(time.perf_counter() - startTime))

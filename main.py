@@ -395,9 +395,14 @@ while True:
 				if teamScore == 0 and opponentScore == 0:
 					bldr.append("-")
 				else:
+					hideScores = (matchDate + timedelta(days=1) > datetime.utcnow().replace(tzinfo=timezone.utc))
+					if hideScores:
+						bldr.append("[](#s \"")
 					bldr.append(str(teamScore))
 					bldr.append("-")
 					bldr.append(str(opponentScore))
+					if hideScores:
+						bldr.append("\")")
 
 				bldr.append("\n")
 

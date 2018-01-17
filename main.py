@@ -112,7 +112,7 @@ teamSwitches = {
 	'SFS': True,
 	'GLA': True,
 	'BOS': True,
-	'PHI': True
+	'PHI': False
 }
 if len(sys.argv) >= 2:
 	user = sys.argv[1]

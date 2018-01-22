@@ -181,7 +181,8 @@ while True:
 					'awayScore': match['scores'][1]['value'],
 					'date': datetime.strptime(match['startDate'], "%Y-%m-%dT%H:%M:%S.000Z").replace(
 						tzinfo=timezone.utc),
-					'stage': stageName
+					'stage': stageName,
+					'id': match['id']
 					}
 			insert_date_sorted(matches, game)
 			insert_date_sorted(stageMatches[stageName], game)
@@ -225,13 +226,17 @@ while True:
 		bldr.append(matchDate.strftime("%b"))
 		bldr.append(" ")
 		bldr.append(day_with_suffix(matchDate))
-		bldr.append("|")
+		bldr.append("|[")
 		if match['home'] == currentTeam:
 			bldr.append(teams[match['away']])
 		else:
 			bldr.append(teams[match['home']])
-		bldr.append("\n")
-		bldr.append("[See full schedule here](https://www.reddit.com/r/SFShock_OW/wiki/matches)\n\n")
+		bldr.append("](https://overwatchleague.com/en-us/match/")
+		bldr.append(str(match['id']))
+		bldr.append(" \"match details\")\n")
+		bldr.append("---\n")
+		bldr.append("###[See full schedule, results, match details and VoDs here](https://www.reddit.com/r/SFShock_OW/wiki/matches)\n")
+		bldr.append("---\n\n")
 
 		bldr.append("## OVERWATCH LEAGUE | ")
 		bldr.append(currentStage)
@@ -256,12 +261,11 @@ while True:
 				if teamScore == 0 and opponentScore == 0:
 					bldr.append("N/A")
 				else:
-					scoreString = str(teamScore) + " - " + str(opponentScore)
 					bldr.append("[")
-					bldr.append(scoreString)
-					bldr.append("](#s \"")
-					bldr.append(scoreString)
-					bldr.append("\")")
+					bldr.append(str(teamScore))
+					bldr.append(" - ")
+					bldr.append(str(opponentScore))
+					bldr.append("](#s)")
 				bldr.append("\n")
 
 		missingOpponents = []

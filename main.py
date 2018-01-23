@@ -487,6 +487,25 @@ while True:
 		bldr.append("---")
 		bldr.append("\n\n")
 
+		bldr.append("##Standings\n\n")
+
+		bldr.append("Team|Points|Rank|Div. Rank\n")
+		bldr.append("---|---|---|---\n")
+		for teamRank in teamRanks:
+			bldr.append(teamNames[teamRank['team']]['short'])
+			bldr.append("|")
+			bldr.append(str(teamRank['wins']))
+			bldr.append("|")
+			bldr.append(str(teamRank['rank']))
+			bldr.append("|")
+			bldr.append(teamRank['division'])
+			bldr.append(str(teamRank['divisionRank']))
+			bldr.append("\n")
+
+		bldr.append("\n")
+		bldr.append("---")
+		bldr.append("\n\n")
+
 		subreddit = "BostonUprising"
 		wikiPage = r.subreddit(subreddit).wiki['config/sidebar']
 

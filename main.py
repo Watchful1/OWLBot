@@ -27,18 +27,18 @@ timezones = {'EST': timezone(timedelta(hours=-5)),
              }
 
 # GLA, SFS, BOS, SEO, FLA, LDN, NYE, SHD, PHI, HOU, DAL, VAL
-teamNames = {'GLA': {'short': "Gladiators", 'medium': ""},
-             'SFS': {'short': "Shock", 'medium': ""},
-             'BOS': {'short': "Uprising", 'medium': ""},
-             'SEO': {'short': "Dynasty", 'medium': ""},
-             'FLA': {'short': "Mayhem", 'medium': ""},
-             'LDN': {'short': "Spitfire", 'medium': ""},
-             'NYE': {'short': "Excelsior", 'medium': ""},
-             'SHD': {'short': "Dragons", 'medium': ""},
-             'PHI': {'short': "Fusion", 'medium': ""},
-             'HOU': {'short': "Outlaws", 'medium': ""},
-             'DAL': {'short': "Fuel", 'medium': ""},
-             'VAL': {'short': "Valiant", 'medium': ""}
+teamNames = {'GLA': {'short': "Gladiators", 'long': "Los Angeles Gladiators", 'division': "P"},
+             'SFS': {'short': "Shock", 'long': "San Francisco Shock", 'division': "P"},
+             'BOS': {'short': "Uprising", 'long': "Boston Uprising", 'division': "A"},
+             'SEO': {'short': "Dynasty", 'long': "Seoul Dynasty", 'division': "P"},
+             'FLA': {'short': "Mayhem", 'long': "Florida Mayhem", 'division': "A"},
+             'LDN': {'short': "Spitfire", 'long': "London Spitfire", 'division': "A"},
+             'NYE': {'short': "Excelsior", 'long': "New York Excelsior", 'division': "A"},
+             'SHD': {'short': "Dragons", 'long': "Shanghai Dragons", 'division': "P"},
+             'PHI': {'short': "Fusion", 'long': "Philadelphia Fusion", 'division': "A"},
+             'HOU': {'short': "Outlaws", 'long': "Houston Outlaws", 'division': "A"},
+             'DAL': {'short': "Fuel", 'long': "Dallas Fuel", 'division': "P"},
+             'VAL': {'short': "Valiant", 'long': "Los Angeles Valiant", 'division': "P"}
              }
 
 ### Logging setup ###
@@ -100,6 +100,17 @@ def insert_date_sorted(list, game):
 			list.insert(i, game)
 			return
 	list.append(game)
+
+
+def insert_rank_sorted(list, team):
+	if len(list) == 0:
+		list.append(team)
+		return
+	for i, orderedTeam in enumerate(list):
+		if team['rank'] < orderedTeam['rank']:
+			list.insert(i, team)
+			return
+	list.append(team)
 
 
 signal.signal(signal.SIGINT, signal_handler)
@@ -207,6 +218,40 @@ while True:
 
 	# for team in teamMatches:
 	# 	log.debug(team + ": " + str(len(teamMatches[team])))
+
+	url = "https://api.overwatchleague.com/standings"
+	try:
+		requestTime = time.perf_counter()
+		json = requests.get(url, headers={'User-Agent': USER_AGENT})
+		requestSeconds = int(time.perf_counter() - requestTime)
+		if json.status_code != 200:
+			log.warning("Could not parse schedule, status: " + str(json.status_code))
+		ranks = json.json()['ranks']
+	except Exception as err:
+		log.warning("Could not parse standings, skipping")
+		log.warning(traceback.format_exc())
+		time.sleep(15 * 60)
+		continue
+
+	teamRanks = []
+	divisions = {'A': [], 'P': []}
+	for rank in ranks:
+		teamRank = {}
+		teamRank['team'] = rank['competitor']['abbreviatedName']
+		teamRank['rank'] = rank['placement']
+		teamRank['wins'] = rank['records'][0]['matchWin']
+
+		insert_rank_sorted(divisions[teamNames[teamRank['team']]['division']], teamRank)
+		insert_rank_sorted(teamRanks, teamRank)
+
+	for division in divisions:
+		for i, teamRank in enumerate(divisions[division]):
+			teamRank['division'] = division
+			teamRank['divisionRank'] = i + 1
+
+	# for teamRank in teamRanks:
+	# 	log.debug(teamRank['team'] + ": " + teamRank['division'] + str(teamRank['divisionRank']))
+
 
 	currentTeam = "SFS"
 	if teamSwitches[currentTeam]:
@@ -337,7 +382,21 @@ while True:
 					bldr.append("\n")
 			bldr.append("\n")
 
-		bldr.append("\n")
+		bldr.append("____________________________\n")
+		bldr.append("#**Standings**\n\n")
+
+		bldr.append("Team|Points|Rank|Div. Rank\n")
+		bldr.append("---|---|---|---\n")
+		for teamRank in teamRanks:
+			bldr.append(teamNames[teamRank['team']]['long'])
+			bldr.append("|")
+			bldr.append(str(teamRank['wins']))
+			bldr.append("|")
+			bldr.append(str(teamRank['rank']))
+			bldr.append("|")
+			bldr.append(teamRank['division'])
+			bldr.append(str(teamRank['divisionRank']))
+			bldr.append("\n")
 
 		subreddit = "lagladiators"
 		wikiPage = r.subreddit(subreddit).wiki['config/sidebar']

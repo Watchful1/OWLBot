@@ -254,7 +254,7 @@ while True:
 
 
 	currentTeam = "SFS"
-	if teamSwitches[currentTeam]:
+	if teamSwitches[currentTeam] and datetime.utcnow().hour == 10:
 		bldr = []
 		bldr.append("## UPCOMING MATCH: \n\n")
 		bldr.append("Date | vs.\n")
